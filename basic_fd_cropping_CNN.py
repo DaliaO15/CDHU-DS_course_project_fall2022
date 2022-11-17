@@ -37,12 +37,13 @@ for i, filename in enumerate(os.listdir(directory)):
     f = os.path.join(directory, filename)
     
     # checking if it is a file
+    # TODO check if f is an image
     if os.path.isfile(f):
         # Child directroy
         subfolder = os.path.splitext(os.path.basename(f))[0]
 
         # Parent Directory path
-        # TODO: Change name of end_folder
+        # TODO: Change variable name of end_folder
         end_folder = args['end_folder']
 
         # Path
@@ -54,9 +55,9 @@ for i, filename in enumerate(os.listdir(directory)):
         os.mkdir(subfolder)
         os.chdir('..')
         
-        print(f)
+        #print(f)
         img = cv2.imread(f)
-        img = imutils.resize(img, width=600)
+        #img = imutils.resize(img, width=600)
         rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         # Detection
