@@ -11,6 +11,19 @@ def createFolders(folderName, train_split, val_split, test_split, delete, seed):
     splitfolders.ratio(folderName, output=output_path, seed=seed, ratio=(train_split, val_split, test_split), group_prefix=None, move=False)
     return output_path
 
+def countNumberOfFilesInDirectory(dir_path):
+    return len([entry for entry in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, entry))])
+
+def getCountOfClasses(train_path, val_path, test_path):
+    train_female = countNumberOfFilesInDirectory(train_path + '/Female')
+    train_male = countNumberOfFilesInDirectory(train_path + '/Male')
+    val_female = countNumberOfFilesInDirectory(val_path + '/Female')
+    val_male = countNumberOfFilesInDirectory(val_path + '/Male')
+    test_female = countNumberOfFilesInDirectory(test_path + '/Female')
+    test_male = countNumberOfFilesInDirectory(test_path + '/Male')
+    return (train_female, train_male, val_female, val_male, test_female, test_male)
+
+
 def readData(folderName, image_size, batch_size, preprocess_input, seed=None, split_folder=True, delete=True, train_split=0.8, val_split=0.1, test_split=0.1):
     if(split_folder):
         ds_path = createFolders(folderName, train_split, val_split, test_split, delete, seed)
@@ -53,4 +66,8 @@ def readData(folderName, image_size, batch_size, preprocess_input, seed=None, sp
         shuffle=False,
         seed=seed
     )
-    return (train_batches, val_batches, test_batches)
+    
+    count_classes = getCountOfClasses(train_path, val_path, test_path)
+    print("Count classes: " + str(count_classes))
+    
+    return (train_batches, val_batches, test_batches, count_classes)
