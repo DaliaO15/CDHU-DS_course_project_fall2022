@@ -3,17 +3,17 @@ from tensorflow import keras
 import shutil
 import os
 
-def createFolders(folderName, train_split, val_split, test_split):
+def createFolders(folderName, train_split, val_split, test_split, delete):
     output_path = folderName + '_split'
-    if(os.path.exists(output_path)):
+    if(os.path.exists(output_path) and delete):
         print("Delete old data folder: " + output_path)
         shutil.rmtree(output_path)
     splitfolders.ratio(folderName, output=output_path, seed=1337, ratio=(train_split, val_split, test_split), group_prefix=None, move=False)
     return output_path
 
-def readImagesEfficientNet(folderName, image_size, batch_size, split_folder=True, train_split=0.8, val_split=0.1, test_split=0.1):
+def readImagesEfficientNet(folderName, image_size, batch_size, split_folder=True, delete=True, train_split=0.8, val_split=0.1, test_split=0.1):
     if(split_folder):
-        ds_path = createFolders(folderName, train_split, val_split, test_split)
+        ds_path = createFolders(folderName, train_split, val_split, test_split, delete)
     else:
         ds_path = folderName
 
