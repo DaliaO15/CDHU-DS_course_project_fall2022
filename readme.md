@@ -1,6 +1,8 @@
 # Face extraction.
 
 Use the following commands to install dlib with CUDA support:
+```bash
+
 !git clone https://github.com/davisking/dlib.git
 !cd dlib
 !mkdir build
@@ -9,5 +11,7 @@ Use the following commands to install dlib with CUDA support:
 !cmake --build .
 !cd ..
 !python setup.py install --set USE_AVX_INSTRUCTIONS=1 --set DLIB_USE_CUDA=1
+
+```
 
 Note: Make sure to install Visula studio (For Windows), cmake and CUDA drivers before running the above
