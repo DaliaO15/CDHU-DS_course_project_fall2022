@@ -2,6 +2,7 @@ import splitfolders
 from tensorflow import keras
 import shutil
 import os
+import tensorflow as tf
 
 
 def createFolders(folderName, train_split, val_split, test_split, delete, seed):
@@ -122,4 +123,22 @@ def readData(folderName, image_size, batch_size, preprocess_input, seed=None, sp
     count_classes = getCountOfClasses(train_path, val_path, test_path)
     print("Count classes: " + str(count_classes))
     
-    return (train_batches, val_batches, test_batches, count_classes)
+    ds_train = tf.data.Dataset.from_generator(
+        lambda: train_batches,
+        output_types=(tf.float32, tf.float32), 
+        output_shapes=([batch_size, image_size[0], image_size[1], 3], [batch_size, ]),
+    )
+    
+    ds_val = tf.data.Dataset.from_generator(
+        lambda: val_batches,
+        output_types=(tf.float32, tf.float32), 
+        output_shapes=([batch_size, image_size[0], image_size[1], 3], [batch_size, ]),
+    )
+    
+    ds_test = tf.data.Dataset.from_generator(
+        lambda: test_batches,
+        output_types=(tf.float32, tf.float32), 
+        output_shapes=([batch_size, image_size[0], image_size[1], 3], [batch_size, ]),
+    )
+    
+    return (ds_train, train_batches, ds_val, val_batches, ds_test, test_batches, count_classes)

@@ -7,14 +7,14 @@ def saveModel(model, path):
 def loadModel(path):  
     return tf.keras.models.load_model(path,compile=False)
     
-def train_model(model, epochs, train_ds, val_ds, class_weight=None, weight=True):
+def train_model(model, epochs, ds_train, train_batches, ds_val, class_weight=None, weight=True):
     schedulercb = tf.keras.callbacks.LearningRateScheduler(scheduler)
     log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     if(weight):
-        model.fit(train_ds, callbacks=[schedulercb,tensorboard_callback], epochs=epochs, validation_data=val_ds, class_weight=class_weight, verbose=2)
+        model.fit(ds_train, steps_per_epoch=(1 + train_batches.n // train_batches.batch_size), callbacks=[schedulercb,tensorboard_callback], epochs=epochs, validation_data=ds_val, class_weight=class_weight)
     else:
-        model.fit(train_ds, callbacks=[schedulercb,tensorboard_callback], epochs=epochs, validation_data=val_ds, verbose=2)
+        model.fit(ds_train, steps_per_epoch=(1 + train_batches.n // train_batches.batch_size), callbacks=[schedulercb,tensorboard_callback], epochs=epochs, validation_data=ds_val)
         
 def scheduler(epoch, lr):
     print('sc')
@@ -27,12 +27,4 @@ def scheduler(epoch, lr):
     elif epoch == 50:
         return lr * tf.math.exp(-0.1)
     else:
-        return lr
-    
-def addFinalLayersToModel(model, image_size=(224, 224)):    
-    x = tf.keras.layers.GlobalAveragePooling2D()(model.layers[-1].output)
-    x = tf.keras.layers.Dropout(0.2)(x)
-
-    x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
-    
-    return tf.keras.Model(inputs=model.inputs, outputs=x)
+            return lr

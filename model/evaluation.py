@@ -10,17 +10,13 @@ import os
 import datetime
 
 
-def testModel(model, ds_test):
+def testModel(model, ds_test, dir_name):
     from matplotlib import pyplot as plt
     
     print("Testing Model")
     print("-------------")
     test_predict = model.predict(ds_test, verbose=2)
     test_labels = ds_test.labels
-    
-    print("Make folder...")
-    dir_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + "_Test"
-    os.mkdir(dir_name)
     
     print("Plot Histogram...")
     plt.hist(test_predict, bins=100)
