@@ -126,19 +126,19 @@ def readData(folderName, image_size, batch_size, preprocess_input, seed=None, sp
     ds_train = tf.data.Dataset.from_generator(
         lambda: train_batches,
         output_types=(tf.float32, tf.float32), 
-        output_shapes=([batch_size, image_size[0], image_size[1], 3], [batch_size, ]),
+        output_shapes=([None, image_size[0], image_size[1], 3], [None, ])
     )
     
     ds_val = tf.data.Dataset.from_generator(
         lambda: val_batches,
         output_types=(tf.float32, tf.float32), 
-        output_shapes=([batch_size, image_size[0], image_size[1], 3], [batch_size, ]),
+        output_shapes=([None, image_size[0], image_size[1], 3], [None, ])
     )
     
     ds_test = tf.data.Dataset.from_generator(
         lambda: test_batches,
         output_types=(tf.float32, tf.float32), 
-        output_shapes=([batch_size, image_size[0], image_size[1], 3], [batch_size, ]),
+        output_shapes=([None, image_size[0], image_size[1], 3], [None, ])
     )
     
     return (ds_train, train_batches, ds_val, val_batches, ds_test, test_batches, count_classes)
