@@ -72,11 +72,11 @@ def build_model(image_size=(224,224), network="Efficient"):
         
     elif(network == "Efficient"):
         inputs = tf.keras.layers.Input(shape=(image_size[0], image_size[1], 3))
-        base_model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=inputs, weights=None)
+        base_model = tf.keras.applications.EfficientNetB6(include_top=False, input_tensor=inputs, weights=None)
         x = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
         x = tf.keras.layers.Dropout(0.2)(x)
         x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
-        base_model = tf.keras.Model(base_model.inputs, x)
+        base_model = tf.keras.Model(inputs, x)
     
     base_model.build((None, image_size[0], image_size[1], 3))
     

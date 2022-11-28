@@ -83,9 +83,9 @@ def readData(folderName, image_size, batch_size, preprocess_input, seed=None, sp
     else:
         ds_path = folderName
 
-    train_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
-    valid_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
-    test_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
+    train_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255, preprocessing_function=preprocess_input)
+    valid_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255, preprocessing_function=preprocess_input)
+    test_gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255, preprocessing_function=preprocess_input)
     
     train_path = ds_path + '/train'
     val_path = ds_path + '/val'
