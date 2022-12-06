@@ -141,4 +141,10 @@ def readData(folderName, image_size, batch_size, preprocess_input, seed=None, sp
         output_shapes=([None, image_size[0], image_size[1], 3], [None, ])
     )
     
+    options = tf.data.Options()
+    options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
+    ds_train = ds_train.with_options(options)
+    ds_val = ds_val.with_options(options)
+    ds_test = ds_test.with_options(options)
+    
     return (ds_train, train_batches, ds_val, val_batches, ds_test, test_batches, count_classes)
