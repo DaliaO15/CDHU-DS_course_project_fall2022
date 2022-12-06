@@ -60,25 +60,38 @@ def metrics_dict():
     }
     
 
-def build_model(image_size=(224,224), network="Efficient"):
-    if(network == "VGG"):
-        base_model = tf.keras.applications.VGG16(
-            weights=None, 
-            input_shape=(image_size[0], image_size[1], 3),
-            include_top=True,
-            classes=1,
-            classifier_activation="sigmoid"
-        )
+def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
+    if(augmentation):
+        preprocessing = tf.keras.Sequential([
+            tf.keras.layers.Rescaling(1./255),
+            tf.keras.layers.RandomFlip(),
+            tf.keras.layers.RandomRotation(0.1),
+            tf.keras.layers.RandomTranslation(0.1, 0.1),
+            tf.keras.layers.RandomBrightness(0.1),
+            tf.keras.layers.RandomContrast(0.1)
+        ])
+    else:
+        preprocessing = tf.keras.Sequential([
+            tf.keras.layers.Rescaling(1./255)
+        ])
+    if(network == "Xception"):
+        inputs = tf.keras.layers.Input(shape=(image_size[0], image_size[1], 3))
+        x = preprocessing(inputs)
+        base_model = tf.keras.applications.Xception(weights=None, input_tensor=x, include_top=False)
+        x = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(base_model.output)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
+        base_model = tf.keras.Model(inputs, x)
         
     elif(network == "Efficient"):
         inputs = tf.keras.layers.Input(shape=(image_size[0], image_size[1], 3))
-        base_model = tf.keras.applications.EfficientNetB6(include_top=False, input_tensor=inputs, weights=None)
-        x = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+        x = preprocessing(inputs)
+        base_model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=x, drop_connect_rate=0.4)
+        x = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(base_model.output)
+        x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Dropout(0.2)(x)
         x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
         base_model = tf.keras.Model(inputs, x)
-    
-    base_model.build((None, image_size[0], image_size[1], 3))
-    
+        
     return base_model
            
