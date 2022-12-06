@@ -63,7 +63,6 @@ def metrics_dict():
 def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
     if(augmentation):
         preprocessing = tf.keras.Sequential([
-            tf.keras.layers.Rescaling(1./255),
             tf.keras.layers.RandomFlip('horizontal'),
             tf.keras.layers.RandomRotation(0.1),
             tf.keras.layers.RandomTranslation(0.1, 0.1),
@@ -71,9 +70,7 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
             tf.keras.layers.RandomContrast(0.1)
         ])
     else:
-        preprocessing = tf.keras.Sequential([
-            tf.keras.layers.Rescaling(1./255)
-        ])
+        preprocessing = tf.keras.Sequential()
     if(network == "Xception"):
         inputs = tf.keras.layers.Input(shape=(image_size[0], image_size[1], 3))
         x = preprocessing(inputs)
