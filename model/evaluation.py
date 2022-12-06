@@ -200,21 +200,20 @@ def testModelWithThresholdChange(model, ds_val, val_batches, test_predict, test_
                                            bspd=format(tn/(tn+fp+tf.keras.backend.epsilon())-tp/(tp+fn+tf.keras.backend.epsilon()),".3f")))
 
 
-def kfoldCrossValidation(data_directory, kfoldmodel, preprocess, image_size=(224,224), nr_of_splits=10, epochs=30, class_weight=False):
-    ds_path = ir.createFolders(data_directory, 1, 0, 0, True, None)
+def kfoldCrossValidation(data_directory, kfoldmodel, preprocess, learning_rate, image_size=(224,224), nr_of_splits=10, epochs=20, class_weight=False):
 
     ds_train = tf.keras.utils.image_dataset_from_directory(
-        ds_path + "/train",
+        data_directory,
         label_mode = "binary",
-        image_size=(image_size[0], image_size[1])
+        image_size=(image_size[0], image_size[1]),
+        shuffle=True
     )
     
-    preprocess(ds_train)
-    
+    ds_train = ds_train.map(lambda x, y: (preprocess(x), y))
+
     options = tf.data.Options()
     options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
     ds_train = ds_train.with_options(options)
-    ds_test = ds_test.with_options(options)
 
     train_splits = []
     for i in range(0,nr_of_splits):
@@ -229,13 +228,10 @@ def kfoldCrossValidation(data_directory, kfoldmodel, preprocess, image_size=(224
             ds_train_fold = ds_train_fold.concatenate(train_splits[j])
 
         
-        strategy = tf.distribute.MirroredStrategy()
+        model = kfoldmodel
+        metrics_list = m.metrics_list()
 
-        with strategy.scope():
-            model = tf.keras.models.clone_model(kfoldmodel)
-            metrics_list = m.metrics_list()
-
-        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), 
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), 
                                    loss="binary_crossentropy", metrics=metrics_list)
 
         schedulercb = tf.keras.callbacks.LearningRateScheduler(utils.scheduler)
@@ -247,10 +243,8 @@ def kfoldCrossValidation(data_directory, kfoldmodel, preprocess, image_size=(224
             class_weights = mit.findClassWeights(ds_train_fold)
         else: 
             class_weights = None
-        
-        test_results = {}
-        
-        test_results = model.fit(ds_train_fold, class_weight=class_weight, callbacks=[schedulercb,tensorboard_callback,earlystop_callback], epochs=epochs, validation_data=ds_val_fold, verbose=2)
+                
+        test_results = model.fit(ds_train_fold, class_weight=class_weight, callbacks=[schedulercb,tensorboard_callback,earlystop_callback], epochs=epochs, validation_data=ds_val_fold)
 
         history.append(test_results.history)    
         train_splits.append(ds_val_fold)    

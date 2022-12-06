@@ -19,13 +19,13 @@ def train_model(model, epochs, ds_train, train_batches, ds_val, val_batches, cla
         
 def scheduler(epoch, lr):
     print('sc')
-    if epoch < 10:
+    if epoch < 5:
         return lr
-    elif epoch == 10:
+    elif epoch == 5:
         return lr * tf.math.exp(-0.5)
-    elif epoch == 20:
+    elif epoch == 10:
         return lr * tf.math.exp(-0.3)
-    elif epoch == 30:
+    elif epoch == 15:
         return lr * tf.math.exp(-0.1)
     else:
         return lr

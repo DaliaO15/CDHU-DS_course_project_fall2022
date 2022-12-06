@@ -76,8 +76,9 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
             base_model = tf.keras.applications.Xception(weights=None, input_tensor=x, include_top=False)
         else:
             base_model = tf.keras.applications.Xception(weights=None, input_tensor=inputs, include_top=False)
-        x = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(base_model.output)
-        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Flatten()(base_model.output)
+        x = tf.keras.layers.Dense(1024, activation='relu')(x)
+        x = tf.keras.layers.Dropout(0.5)(x)
         x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
         base_model = tf.keras.Model(inputs, x)
         
@@ -85,9 +86,9 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
         inputs = tf.keras.layers.Input(shape=(image_size[0], image_size[1], 3))
         if(augmentation):
             x = augmentation_layers(inputs)
-            base_model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=x, drop_connect_rate=0.4)
+            base_model = tf.keras.applications.EfficientNetB3(include_top=False, input_tensor=x, drop_connect_rate=0.4)
         else: 
-            base_model = tf.keras.applications.EfficientNetB0(include_top=False, input_tensor=inputs, drop_connect_rate=0.4)
+            base_model = tf.keras.applications.EfficientNetB3(include_top=False, input_tensor=inputs, drop_connect_rate=0.4)
         x = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(base_model.output)
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Dropout(0.2)(x)
