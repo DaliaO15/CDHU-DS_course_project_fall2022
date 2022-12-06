@@ -64,7 +64,7 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
     if(augmentation):
         preprocessing = tf.keras.Sequential([
             tf.keras.layers.Rescaling(1./255),
-            tf.keras.layers.RandomFlip(),
+            tf.keras.layers.RandomFlip('horizontal'),
             tf.keras.layers.RandomRotation(0.1),
             tf.keras.layers.RandomTranslation(0.1, 0.1),
             tf.keras.layers.RandomBrightness(0.1),
