@@ -10,17 +10,18 @@ import os
 import datetime
 
 
-def testModel(model, ds_test, dir_name):
+def testModel(model, ds_test, test_batches, dir_name):
     from matplotlib import pyplot as plt
     
     print("Testing Model")
     print("-------------")
-    test_predict = model.predict(ds_test, verbose=2)
-    test_labels = ds_test.labels
+    test_predict = model.predict(ds_test, steps=(1 + test_batches.n // test_batches.batch_size), verbose=2)
+    test_labels = test_batches.labels
     
     print("Plot Histogram...")
     plt.hist(test_predict, bins=100)
     plt.savefig(dir_name + '/histogram.png')
+    plt.show()
     plt.clf()
     
     print("Plot ROC...")
@@ -31,6 +32,7 @@ def testModel(model, ds_test, dir_name):
     plt.xlabel('False Positive Rate') 
     plt.ylabel('True Positive Rate') 
     plt.savefig(dir_name + '/ROC.png')    
+    plt.show()
     plt.clf()
     
     print("Plot Confusion matrix...")
@@ -42,6 +44,7 @@ def testModel(model, ds_test, dir_name):
         for j in range(conf_matrix.shape[1]):
             plt.text(x=j, y=i,s=conf_matrix[i, j], va='center', ha='center', size='xx-large')
     plt.savefig(dir_name + '/confusion_matrix.png') 
+    plt.show()
     plt.clf()
     
     print("Plot Results...")
@@ -55,6 +58,7 @@ def testModel(model, ds_test, dir_name):
     plt.barh(labels, true, color='g')
     plt.barh(labels, false, left=true, color='r')
     plt.savefig(dir_name + '/results.png')   
+    plt.show()
     plt.clf()
     
     print(getTemplateText().safe_substitute(change="Without threshold change", accuracy=(tp+tn)/(tp+fp+tn+fn),
@@ -85,7 +89,7 @@ def findIdealThreshold(model, val_predict, val_labels):
         true[index]=np.abs(tp-tn)
         false[index]=np.abs(fp-fn)
         total[index]=np.abs((tp+fp)-(tn+fn))
-        prop[index]=np.abs((tp/(fp+tf.keras.backend.epsilon()))-(tn/(fn+tf.keras.backend.epsilon())))
+        prop[index]=np.abs((tp/(tp+fn+tf.keras.backend.epsilon()))-(tn/(tn+fp+tf.keras.backend.epsilon())))
 
     index_true = np.argmin(true)
     index_false = np.argmin(false)
@@ -112,13 +116,13 @@ def findIdealThreshold(model, val_predict, val_labels):
             thresholds)
     
     
-def testModelWithThresholdChange(model, ds_val, test_predict, test_labels, dir_name):
+def testModelWithThresholdChange(model, ds_val, val_batches, test_predict, test_labels, dir_name):
     from matplotlib import pyplot as plt
     
     print("Validating Model")
     print("-------------")
-    val_predict = model.predict(ds_val, verbose=2)
-    val_labels = ds_val.labels
+    val_predict = model.predict(ds_val, steps=(1 + val_batches.n // val_batches.batch_size), verbose=2)
+    val_labels = val_batches.labels
     
     print("Calcualte Optimal Thresholds...")
     thresholds, values, threshold_values = findIdealThreshold(model, val_predict, val_labels)
@@ -143,6 +147,7 @@ def testModelWithThresholdChange(model, ds_val, test_predict, test_labels, dir_n
             
         plt.plot(threshold_values[500:9500], values[index][500:9500]) 
         plt.savefig(dir_name + '/threshold_' + str_file + '.png')
+        plt.show()
         plt.clf()
         
         labels = ['Female', 'Male']
@@ -152,6 +157,7 @@ def testModelWithThresholdChange(model, ds_val, test_predict, test_labels, dir_n
         plt.barh(labels, true, color='g')
         plt.barh(labels, false, left=true, color='r')
         plt.savefig(dir_name + '/threshold_results_' + str_file + '.png')
+        plt.show()
         plt.clf()
         
         print(getTemplateText().safe_substitute(change=str_results, accuracy=(tp+tn)/(tp+fp+tn+fn),
@@ -168,6 +174,11 @@ def testModelWithThresholdChange(model, ds_val, test_predict, test_labels, dir_n
                                        bfprpd=fp/(tn+fp)-fn/(tp+fn), bnprpd=tn/(tn+fn)-tp/(tp+fp),
                                        nprp=tn/(tn+fn), bspd=tn/(tn+fp)-tp/(tp+fn)))
 
+
+def crossValidation():
+    return
+        
+        
     
 def getTemplateText():
     return Template("""
