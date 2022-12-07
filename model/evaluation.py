@@ -18,7 +18,7 @@ def testModel(model, ds_test, test_batches, dir_name):
     
     print("Testing Model")
     print("-------------")
-    test_predict = model.predict(ds_test, steps=(1 + test_batches.n // test_batches.batch_size), verbose=2)
+    test_predict = model.predict(ds_test, steps=(1 + test_batches.n // test_batches.batch_size))
     test_labels = test_batches.labels
     
     print("Plot Histogram...")
@@ -200,54 +200,7 @@ def testModelWithThresholdChange(model, ds_val, val_batches, test_predict, test_
                                            bspd=format(tn/(tn+fp+tf.keras.backend.epsilon())-tp/(tp+fn+tf.keras.backend.epsilon()),".3f")))
 
 
-def kfoldCrossValidation(data_directory, kfoldmodel, preprocess, learning_rate, image_size=(224,224), nr_of_splits=10, epochs=20, class_weight=False):
-
-    ds_train = tf.keras.utils.image_dataset_from_directory(
-        data_directory,
-        label_mode = "binary",
-        image_size=(image_size[0], image_size[1]),
-        shuffle=True
-    )
-    
-    ds_train = ds_train.map(lambda x, y: (preprocess(x), y))
-
-    options = tf.data.Options()
-    options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
-    ds_train = ds_train.with_options(options)
-
-    train_splits = []
-    for i in range(0,nr_of_splits):
-        train_splits.append(ds_train.shard(num_shards=nr_of_splits, index=i))
-    
-
-    history = []
-    for i in range(0,nr_of_splits):
-        ds_val_fold = train_splits.pop(0)
-        ds_train_fold = train_splits[0]
-        for j in range(1, nr_of_splits-1):
-            ds_train_fold = ds_train_fold.concatenate(train_splits[j])
-
-        
-        model = kfoldmodel
-        metrics_list = m.metrics_list()
-
-        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), 
-                                   loss="binary_crossentropy", metrics=metrics_list)
-
-        schedulercb = tf.keras.callbacks.LearningRateScheduler(utils.scheduler)
-        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-        earlystop_callback = tf.keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True, baseline=0.7)
-        
-        if(class_weight):
-            class_weights = mit.findClassWeights(ds_train_fold)
-        else: 
-            class_weights = None
-                
-        test_results = model.fit(ds_train_fold, class_weight=class_weight, callbacks=[schedulercb,tensorboard_callback,earlystop_callback], epochs=epochs, validation_data=ds_val_fold)
-
-        history.append(test_results.history)    
-        train_splits.append(ds_val_fold)    
+def kfoldCrossValidation(history):
         
     accuracy = [element[-1] for element in history["accuray"]]
     loss = [element[-1] for element in history["loss"]]

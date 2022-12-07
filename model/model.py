@@ -66,7 +66,6 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
             tf.keras.layers.RandomFlip('horizontal'),
             tf.keras.layers.RandomRotation(0.1),
             tf.keras.layers.RandomTranslation(0.1, 0.1),
-            tf.keras.layers.RandomBrightness(0.1),
             tf.keras.layers.RandomContrast(0.1)
         ])
     if(network == "Xception"):
