@@ -70,16 +70,31 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
         ])
     if(network == "Xception"):
         inputs = tf.keras.layers.Input(shape=(image_size[0], image_size[1], 3))
+                
+        # Xception wants inputs rescaled from (0, 255) 
+        # to a range of (-1., +1.), the rescaling layer
+        # outputs: `(inputs * scale) + offset`
+        scale_layer = keras.layers.Rescaling(scale=1 / 127.5, offset=-1)
+        inputs = scale_layer(inputs)
+        
         if(augmentation):
             x = augmentation_layers(inputs)
             base_model = tf.keras.applications.Xception(weights=None, input_tensor=x, include_top=False)
         else:
             base_model = tf.keras.applications.Xception(weights=None, input_tensor=inputs, include_top=False)
-        x = tf.keras.layers.Flatten()(base_model.output)
-        x = tf.keras.layers.Dense(1024, activation='relu')(x)
-        x = tf.keras.layers.Dropout(0.5)(x)
-        x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
+       
+        #x = tf.keras.layers.Flatten()(base_model.output)
+        #x = tf.keras.layers.Dense(1024, activation='relu')(x)
+        #x = tf.keras.layers.Dropout(0.5)(x)
+        #x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
+        
+        # This setup for the top layers has not been tested for Xception.
+        x = keras.layers.GlobalAveragePooling2D()(base_model.output) 
+        x = keras.layers.Dropout(0.2)(x)  # Regularize with dropout (COULD BE REPLACED BY A BATCHNORMALIZATION LAYER
+        x = keras.layers.Dense(1, activation="sigmoid")(x)
+        
         base_model = tf.keras.Model(inputs, x)
+        
         
     elif(network == "Efficient"):
         inputs = tf.keras.layers.Input(shape=(image_size[0], image_size[1], 3))

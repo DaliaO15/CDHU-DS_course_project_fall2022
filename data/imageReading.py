@@ -83,9 +83,10 @@ def readData(folderName, image_size, batch_size, preprocess_input, seed=None, sp
     else:
         ds_path = folderName
 
-    train_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
-    valid_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
-    test_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
+    # preprocessing set to None since preprocessing layer has been added to Xception model directly.
+    train_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=None) 
+    valid_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=None)
+    test_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=None)
     
     train_path = ds_path + '/train'
     val_path = ds_path + '/val'
