@@ -8,10 +8,12 @@ from sklearn.metrics import plot_confusion_matrix
 import data.imageReading as ir
 from model import model as m
 from model import utils as utils
+from sklearn.model_selection import KFold
 import numpy as np
 import os
 import datetime
-
+import glob
+import random
 
 def testModel(model, ds_test, test_batches, dir_name):
     from matplotlib import pyplot as plt
@@ -22,7 +24,9 @@ def testModel(model, ds_test, test_batches, dir_name):
     test_labels = test_batches.labels
     
     print("Plot Histogram...")
+    plt.title('Histogram Predicted Values')
     plt.hist(test_predict, bins=100)
+    plt.xlabel('predicted value') 
     plt.savefig(dir_name + '/histogram.png')
     plt.show()
     plt.clf()
@@ -31,9 +35,10 @@ def testModel(model, ds_test, test_batches, dir_name):
     fpr , tpr , thresholds = roc_curve(test_labels, test_predict)
     
     plt.plot(fpr,tpr) 
+    plt.title('ROC-Curve')
     plt.axis([0,1,0,1]) 
-    plt.xlabel('False Positive Rate') 
-    plt.ylabel('True Positive Rate') 
+    plt.xlabel('false positive rate') 
+    plt.ylabel('true positive rate') 
     plt.savefig(dir_name + '/ROC.png')    
     plt.show()
     plt.clf()
@@ -42,6 +47,7 @@ def testModel(model, ds_test, test_batches, dir_name):
     test_predict_labels = np.where(test_predict>0.5, 1, 0)
         
     conf_matrix = confusion_matrix(test_labels, test_predict_labels)
+    plt.title('Confusion Matrix')
     plt.matshow(conf_matrix, cmap=plt.cm.Blues, alpha=0.3)
     for i in range(conf_matrix.shape[0]):
         for j in range(conf_matrix.shape[1]):
@@ -60,6 +66,7 @@ def testModel(model, ds_test, test_batches, dir_name):
 
     plt.barh(labels, true, color='g')
     plt.barh(labels, false, left=true, color='r')
+    plt.xlabel('predicted (r = false, g = true)') 
     plt.savefig(dir_name + '/results.png')   
     plt.show()
     plt.clf()
@@ -199,6 +206,221 @@ def testModelWithThresholdChange(model, ds_val, val_batches, test_predict, test_
                                            nprp=format(tn/(tn+fn+tf.keras.backend.epsilon()),".3f"), 
                                            bspd=format(tn/(tn+fp+tf.keras.backend.epsilon())-tp/(tp+fn+tf.keras.backend.epsilon()),".3f")))
         
+        
+def kfoldCrossValidation(path_female, path_male, model, metric_list, lr_schedule, image_size, class_weight, folds=5, epochs=20, learning_rate=5e-4, batch_size=128, shuffle_buffer=100):
+    print("Load data...")
+    female = glob.glob(path_female)
+    male = glob.glob(path_male)
+
+    data = []
+    labels = []
+
+    for i in female:   
+        image=tf.keras.preprocessing.image.load_img(i, color_mode='rgb', target_size= image_size)
+        image=np.array(image)
+        data.append(image)
+        labels.append(0)
+    for i in male:   
+        image=tf.keras.preprocessing.image.load_img(i, color_mode='rgb', target_size= image_size)
+        image=np.array(image)
+        data.append(image)
+        labels.append(1)
+        
+    data = np.array(data)
+    labels = np.array(labels)
+
+    list_data = list(zip(data, labels))
+
+    random.shuffle(list_data)
+
+    data, labels = zip(*list_data)
+
+    data = np.array(data)
+    labels = np.array(labels)
+    
+    print("Start crossvalidation...")
+    
+    kf = KFold(n_splits=folds, random_state=None, shuffle=True)
+    
+    weights = model.get_weights()
+    
+    history = []
+    for i, (train_index, test_index) in enumerate(kf.split(data)):
+        print("Fold " + str(i) + "...")
+        
+        X_train, X_val = data[train_index], data[test_index]
+        y_train, y_val = labels[train_index], labels[test_index]
+
+        train_dataset = tf.data.Dataset.from_tensor_slices((np.array(X_train), np.array(y_train)))
+        val_dataset = tf.data.Dataset.from_tensor_slices((np.array(X_val), np.array(y_val)))
+
+        train_dataset = train_dataset.shuffle(shuffle_buffer).batch(batch_size)
+        val_dataset = val_dataset.batch(batch_size)
+
+        options = tf.data.Options()
+        options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+        train_dataset = train_dataset.with_options(options)
+        val_dataset = val_dataset.with_options(options)
+
+        model.set_weights(weights)
+
+        model.compile(optimizer=tf.keras.optimizers.Adam(lr_schedule), 
+                                   loss="binary_crossentropy", 
+                                   metrics=metric_list)
+        
+        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+        earlystop_callback = tf.keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)
+        
+        results = model.fit(train_dataset, callbacks=[tensorboard_callback,earlystop_callback], class_weight=class_weight, epochs=epochs, validation_data=val_dataset)
+        
+        history.append(results.history)
+        
+    return history
+        
+    
+def evaluateCrossValidation(dir_name, history):
+    from matplotlib import pyplot as plt
+    accuracy = [element["accuracy"][-1] for element in history]
+    loss = [element["loss"][-1] for element in history]
+
+    tpr = [element["true_positive_rate"][-1] for element in history]
+    tnr = [element["true_negative_rate"][-1] for element in history]
+    fpr = [element["false_positive_rate"][-1] for element in history]
+    fnr = [element["false_negative_rate"][-1] for element in history]
+
+    ppv = [element["positive_predicted_value"][-1] for element in history]
+    fdr = [element["false_discovery_rate"][-1] for element in history]
+    npv = [element["negative_predicted_value"][-1] for element in history]
+    fora = [element["false_omission_rate"][-1] for element in history]
+
+    bppd = [element["binary_proportional_parity_diff"][-1] for element in history]
+    beod = [element["binary_equalized_odds_diff"][-1] for element in history]
+    bspd = [element["binary_specificity_parity_diff"][-1] for element in history]
+
+
+    vaccuracy = [element["val_accuracy"][-1] for element in history]
+    vloss = [element["val_loss"][-1] for element in history]
+
+
+    vtpr = [element["val_true_positive_rate"][-1] for element in history]
+    vtnr = [element["val_true_negative_rate"][-1] for element in history]
+    vfpr = [element["val_false_positive_rate"][-1] for element in history]
+    vfnr = [element["val_false_negative_rate"][-1] for element in history]
+
+    vppv = [element["val_positive_predicted_value"][-1] for element in history]
+    vfdr = [element["val_false_discovery_rate"][-1] for element in history]
+    vnpv = [element["val_negative_predicted_value"][-1] for element in history]
+    vfora = [element["val_false_omission_rate"][-1] for element in history]
+
+    vbppd = [element["val_binary_proportional_parity_diff"][-1] for element in history]
+    vbeod = [element["val_binary_equalized_odds_diff"][-1] for element in history]
+    vbspd = [element["val_binary_specificity_parity_diff"][-1] for element in history]
+
+    print(getTemplateCrossValidation().safe_substitute( 
+       accuracy=format(np.mean(accuracy),".3f") + "+/-" + format(np.std(accuracy),".3f"),
+       loss=format(np.mean(loss),".3f") + "+/-" + format(np.std(loss),".3f"),
+       tpr=format(np.mean(tpr),".3f") + "+/-" + format(np.std(tpr),".3f"),
+       tnr=format(np.mean(tnr),".3f") + "+/-" + format(np.std(tnr),".3f"),
+       fpr=format(np.mean(fpr),".3f") + "+/-" + format(np.std(fpr),".3f"),
+       fnr=format(np.mean(fnr),".3f") + "+/-" + format(np.std(fnr),".3f"),
+       ppv=format(np.mean(ppv),".3f") + "+/-" + format(np.std(ppv),".3f"),
+       fdr=format(np.mean(fdr),".3f") + "+/-" + format(np.std(fdr),".3f"),
+       npv=format(np.mean(npv),".3f") + "+/-" + format(np.std(npv),".3f"),
+       fora=format(np.mean(fora),".3f") + "+/-" + format(np.std(fora),".3f"),
+       bppd=format(np.mean(bppd),".3f") + "+/-" + format(np.std(bppd),".3f"),
+       beod=format(np.mean(beod),".3f") + "+/-" + format(np.std(beod),".3f"),
+       bspd=format(np.mean(bspd),".3f") + "+/-" + format(np.std(bspd),".3f"),
+       vaccuracy=format(np.mean(vaccuracy),".3f") + "+/-" + format(np.std(vaccuracy),".3f"),
+       vloss=format(np.mean(vloss),".3f") + "+/-" + format(np.std(vloss),".3f"),
+       vtpr=format(np.mean(vtpr),".3f") + "+/-" + format(np.std(vtpr),".3f"),
+       vtnr=format(np.mean(vtnr),".3f") + "+/-" + format(np.std(vtnr),".3f"),
+       vfpr=format(np.mean(vfpr),".3f") + "+/-" + format(np.std(vfpr),".3f"),
+       vfnr=format(np.mean(vfnr),".3f") + "+/-" + format(np.std(vfnr),".3f"),
+       vppv=format(np.mean(vppv),".3f") + "+/-" + format(np.std(vppv),".3f"),
+       vfdr=format(np.mean(vfdr),".3f") + "+/-" + format(np.std(vfdr),".3f"),
+       vnpv=format(np.mean(vnpv),".3f") + "+/-" + format(np.std(vnpv),".3f"),
+       vfora=format(np.mean(vfora),".3f") + "+/-" + format(np.std(vfora),".3f"),
+       vbppd=format(np.mean(vbppd),".3f") + "+/-" + format(np.std(vbppd),".3f"),
+       vbeod=format(np.mean(vbeod),".3f") + "+/-" + format(np.std(vbeod),".3f"),
+       vbspd=format(np.mean(vbspd),".3f") + "+/-" + format(np.std(vbspd),".3f")
+    ))
+
+    print("Plots...")
+
+    plt.title('Model Accuracy')
+    for element in history:
+        plt.plot(element['accuracy'])
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.savefig(dir_name + "/accuracy.png")
+    plt.show()
+    plt.clf()
+
+    plt.title('Model Loss')
+    for element in history:
+        plt.plot(element['loss'])
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.savefig(dir_name + "/loss.png")
+    plt.show()
+    plt.clf()
+
+    plt.title('Model Binary Proportional Parity Diff')
+    for element in history:
+        plt.plot(element['binary_proportional_parity_diff'])
+    plt.ylabel('binary proporitonal parity diff')
+    plt.xlabel('epoch')
+    plt.savefig(dir_name + "/proportional_parity.png")
+    plt.show()
+
+    plt.clf()
+
+    plt.title('Model Binary Equalized Odds Diff')
+    for element in history:
+        plt.plot(element['binary_equalized_odds_diff'])
+    plt.ylabel('binary equalized odds diff')
+    plt.xlabel('epoch')
+    plt.savefig(dir_name + "/equalized_odds.png")
+    plt.show()
+    plt.clf()
+
+    plt.title('Model Validation Accuracy')
+    for element in history:
+        plt.plot(element['val_accuracy'])
+    plt.ylabel('validation accuracy')
+    plt.xlabel('epoch')
+    plt.savefig(dir_name + "/val_accuracy.png")
+    plt.show()
+    plt.clf()
+
+    plt.title('Model Validation Loss')
+    for element in history:
+        plt.plot(element['val_loss'])
+    plt.ylabel('validation loss')
+    plt.xlabel('epoch')
+    plt.savefig(dir_name + "/val_loss.png")
+    plt.show()
+    plt.clf()
+
+    plt.title('Model Validation Binary Proportional Parity Diff')
+    for element in history:
+        plt.plot(element['val_binary_proportional_parity_diff'])
+    plt.ylabel('validation binary proportional parity diff')
+    plt.xlabel('epoch')
+    plt.savefig(dir_name + "/val_proporitional_parity.png")
+    plt.show()
+    plt.clf()
+
+    plt.title('Model Validation Binary Equalized Odds Diff')
+    for element in history:
+        plt.plot(element['val_binary_equalized_odds_diff'])
+    plt.ylabel('validation binary equalized odds diff')
+    plt.xlabel('epoch')
+    plt.savefig(dir_name + "/val_equalized_odds.png")
+    plt.show()
+    plt.clf()
+
     
 def getTemplateText():
     return Template("""
@@ -250,4 +472,59 @@ def getTemplateText():
     Negative predictive rate parity tn/(tn+fn): $nprp
     
     Binary specificity parity diff tn/(tn+fp)-tp/(tp+fn): $bspd
+    """)
+
+def getTemplateCrossValidation():
+    return Template("""
+    Cross Validation results:
+    -------------
+    
+    Accuracy: $accuracy
+    Loss: $loss
+    
+    Test results metrics:
+    ---------------------
+    True positive rate tp/(tp+fn): $tpr
+    True negative rate tn/(tn+fp): $tnr
+    
+    False negative rate fn/(tp+fn): $fnr
+    False positive rate fp/(tn+fp): $fpr
+    
+    Positive predicted value tp/(tp+fp): $ppv
+    False discovery rate fp/(tp+fp): $fdr
+    
+    Negative predicted value tn/(tn+fn): $npv
+    False omission rate fn/(tn+fn): $fora
+    
+    Binary proportional parity diff ((tp+fp)/(tp+fp+tn+fn))-((tn+fn)/(tp+fp+tn+fn)): $bppd
+    
+    Binary equalized odds diff (tp/(tp+fn))-(tn/(tn+fp)): $beod
+    
+    Binary specificity parity diff tn/(tn+fp)-tp/(tp+fn): $bspd
+    
+    
+    Cross Validation validation results:
+    -------------
+    
+    Accuracy: $vaccuracy
+    Loss: $vloss
+    
+    Test results metrics:
+    ---------------------
+    True positive rate tp/(tp+fn): $vtpr
+    True negative rate tn/(tn+fp): $vtnr
+    
+    False negative rate fn/(tp+fn): $vfnr
+    False positive rate fp/(tn+fp): $vfpr
+    
+    Positive predicted value tp/(tp+fp): $vppv
+    False discovery rate fp/(tp+fp): $vfdr
+    
+    Negative predicted value tn/(tn+fn): $vnpv
+    False omission rate fn/(tn+fn): $vfora
+    
+    Binary proportional parity diff ((tp+fp)/(tp+fp+tn+fn))-((tn+fn)/(tp+fp+tn+fn)): $vbppd
+    
+    Binary equalized odds diff (tp/(tp+fn))-(tn/(tn+fp)): $vbeod
+    Binary specificity parity diff tn/(tn+fp)-tp/(tp+fn): $vbspd
     """)

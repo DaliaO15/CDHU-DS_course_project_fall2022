@@ -10,7 +10,7 @@ def loadModel(path, config):
 def train_model(model, epochs, ds_train, train_batches, ds_val, val_batches, class_weight=None, weight=True):
     log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-    earlystop_callback = tf.keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True, baseline=0.7)
+    earlystop_callback = tf.keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)
     if(weight):
         model.fit(ds_train, steps_per_epoch=(1 + train_batches.n // train_batches.batch_size), callbacks=[tensorboard_callback,earlystop_callback], epochs=epochs, validation_data=ds_val, class_weight=class_weight, validation_steps=(1 + val_batches.n // val_batches.batch_size))
     else:
