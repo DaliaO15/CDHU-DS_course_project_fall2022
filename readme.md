@@ -11,6 +11,12 @@ module load TensorFlow/2.7.1-foss-2021b-CUDA-11.4.1 matplotlib/3.4.3-foss-2021b 
 pip install split-folders
 ```
 
+## Git clone project with accesstoken (and checkout branch with code)
+
+```bash
+git clone https://github.com/DaliaO15/CDHU-DS_course_project_fall2022.git
+```
+
 ## Use interactive mode
 
 Example, 4h timeout, 2xA100 GPU:
