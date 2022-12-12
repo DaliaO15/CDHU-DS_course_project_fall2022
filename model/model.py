@@ -73,10 +73,10 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
                 
         if(augmentation):
             x = augmentation_layers(inputs)
-            #x = tf.keras.layers.Rescaling(scale=1.0/127.5, offset=-1)(x)
+            x = tf.keras.layers.Rescaling(scale=1.0/127.5, offset=-1)(x)
             base_model = tf.keras.applications.Xception(weights=None, input_tensor=x, include_top=False)
         else:
-            #x = tf.keras.layers.Rescaling(scale=1.0/127.5, offset=-1)(inputs)
+            x = tf.keras.layers.Rescaling(scale=1.0/127.5, offset=-1)(inputs)
             base_model = tf.keras.applications.Xception(weights=None, input_tensor=inputs, include_top=False)
        
         #x = tf.keras.layers.Flatten()(base_model.output)
