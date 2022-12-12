@@ -52,6 +52,9 @@ def testModel(model, ds_test, test_batches, dir_name):
     for i in range(conf_matrix.shape[0]):
         for j in range(conf_matrix.shape[1]):
             plt.text(x=j, y=i,s=conf_matrix[i, j], va='center', ha='center', size='xx-large')
+    # TODO: double check this
+    plt.xlabel('predicted value') 
+    plt.ylabel('true label') 
     plt.savefig(dir_name + '/confusion_matrix.png') 
     plt.show()
     plt.clf()
