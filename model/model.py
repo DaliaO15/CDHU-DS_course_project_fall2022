@@ -84,7 +84,6 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
         #x = tf.keras.layers.Dropout(0.5)(x)
         #x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
         
-        # This setup for the top layers has not been tested for Xception.
         x = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(base_model.output)
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Dropout(0.2)(x)
