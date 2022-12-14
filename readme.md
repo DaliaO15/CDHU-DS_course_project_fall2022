@@ -81,3 +81,5 @@ Use the following commands to install dlib with CUDA support:
 ```
 
 Note: Make sure to install Visula studio (For Windows), cmake and CUDA drivers before running the above
+
+
