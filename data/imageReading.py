@@ -3,6 +3,10 @@ from tensorflow import keras
 import shutil
 import os
 import tensorflow as tf
+"""
+Contribution: Christoph Nötzli
+Comments: Christoph Nötzli xx/12-22
+"""
 
 
 def createFolders(folderName, train_split, val_split, test_split, delete, seed):
@@ -27,9 +31,7 @@ def createFolders(folderName, train_split, val_split, test_split, delete, seed):
     splitfolders.ratio(folderName, output=output_path, seed=seed, ratio=(train_split, val_split, test_split), group_prefix=None, move=False)
     return output_path
 
-'''
-Count number of files in 
-'''
+
 def countNumberOfFilesInDirectory(dir_path):
     '''
     Count number of files in directory "dir_path"
