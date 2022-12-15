@@ -4,7 +4,7 @@ from fairness import fairnessMetrics as fm
 from model import utils as utils
 
 """
-Contributions: Christoph Nötzli and Erik Norén
+Contributions: Christoph Nötzli, Erik Norén and Sushruth Badri
 Comments: Erik Norén 14/12-22
 """
 
