@@ -6,6 +6,13 @@ import dlib
 import cv2
 import os
 
+"""
+Module orignially provided to us by project owner. Implementaion of the dlib face detection model.
+Module has been customized to fit our needs.
+
+Contributions: Erik Norén and Sushruth Badri
+"""
+
 '''import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]= "0"
