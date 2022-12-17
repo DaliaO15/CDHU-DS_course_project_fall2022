@@ -5,7 +5,7 @@ import os
 import tensorflow as tf
 """
 Contribution: Christoph Nötzli
-Comments: Christoph Nötzli xx/12-22
+Comments: Christoph Nötzli 17/12-22
 """
 
 

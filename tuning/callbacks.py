@@ -2,7 +2,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
+"""
+Contribution: Christoph Nötzli
+Comments: Christoph Nötzli 17/12-22
+"""
+
 class LerningRateCallback(tf.keras.callbacks.Callback):
+    """
+    Custom callback to find find an accurate learning rate for the training of the model
+    
+    During the training the learning rate is increased every "nr_batches" batches
+    
+    We check the learning rate from "min_leraning_rate" to "max_learning_rate" in "steps" steps
+    
+    Every epoch the weights are reset to the initial state
+    
+    After the training with "max_learning_rate" learning rate the training is stopped automatically
+    """
     def __init__(self, steps, nr_batches=10, min_learning_rate=1e-10, max_learning_rate=1e-2):
         self.min_learning_rate = min_learning_rate
         self.max_learning_rate = max_learning_rate

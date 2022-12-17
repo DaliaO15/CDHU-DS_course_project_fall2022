@@ -2,6 +2,11 @@ from tensorboard.backend.event_processing import event_accumulator as ea
 import tensorflow as tf
 from matplotlib import pyplot as plt
 
+"""
+Contributions: Christoph Nötzli
+Comments: Christoph Nötzli 17/12-22
+"""
+
 def loadEventAccumulators(data_names, log_files_train, log_files_val, network="efficientnet"):
     """
     

@@ -17,7 +17,7 @@ import random
 
 """
 Contribution: Christoph Nötzli
-Comments: Erik Norén 14/12-22
+Comments: Christoph Nötzli, Erik Norén 14/12-22
 """
 
 def testModel(model, ds_test, test_batches, dir_name):
@@ -124,7 +124,15 @@ def findIdealThreshold(model, val_predict, val_labels):
     :param val_predict: validation predictions
     :param val_labels: validation labels
     
-    :return Tuple with ...
+    :return Tuple with optimal threshold of the four different methods:
+            same amount of predicted true values, same amount of predicted false values, 
+            same amount of predicted total values, same equal odds
+            
+            The second part of the tuple is the value of the specified optimization at each 
+            threshold between 0 and 1
+            
+            The third part is the range of numbers between 0 and 1 that we consider 
+            for the optimization
     '''    
     thresholds = np.arange(0.0, 1.0, 0.0001)
     true = np.zeros(shape=(len(thresholds)))
@@ -346,7 +354,7 @@ def evaluateCrossValidation(dir_name, history):
     :param dir_name: directory where evaluation results should be saved
     :param history: history log for results of crossvalidation
     
-    :return Tuple with ...
+    :return N/A
     ''' 
     
     from matplotlib import pyplot as plt
