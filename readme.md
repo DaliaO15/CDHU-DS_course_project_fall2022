@@ -98,5 +98,5 @@ project
 └───output_folder
     │
 ```
-
+The output_folder needs to exist before running the command.  
 
