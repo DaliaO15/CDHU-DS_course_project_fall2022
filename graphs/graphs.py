@@ -111,15 +111,15 @@ def efficientnetDict():
         "20221213_181748_EfficientNet_Museum_aug": ["20221213-180415"],
         "20221213_191824_kFoldCrossValidation_Museum_aug_effnet": ["20221213-181816","20221213-183007","20221213-184128","20221213-185506","20221213-190414"],
         "20221213_204427_EfficientNet_FairFace": ["20221213-191829"],
-        "20221213_205623_EfficientNet_transfer": ["20221213-204953"],
+        "20221213_205623_EfficientNet_transfer": ["20221213-205237"],
         "20221213_221541_EfficientNet_FairFace_re": ["20221213-213137"],
         "20221213_222455_EfficientNet_transfer_re": ["20221213-222109"],
         "20221214_133249_EfficientNet_FairFace_aug": ["20221214-105744"],
-        "20221214_135251_EfficientNet_transfer_aug": [""],
-        "20221214_140453_EfficientNet_transfer_re_aug": [""],
-        "20221216_134535_kFoldCrossValidation_EfficientNet": ["","","","", ""],
-        "20221216_140029_kFoldCrossValidation_EfficientNet_aug": ["","","","",""],
-        "20221216_140651_kFoldCrossValidation_EfficientNet_re": ["","","","",""],
+        "20221214_135251_EfficientNet_transfer_aug": ["20221214-134837"],
+        "20221214_140453_EfficientNet_transfer_re_aug": ["20221214-140102"],
+        "20221216_134535_kFoldCrossValidation_EfficientNet": ["20221216-133205","20221216-133447","20221216-133724","20221216-134014","20221216-134315"],
+        "20221216_140029_kFoldCrossValidation_EfficientNet_aug": ["20221216-134551","20221216-134833","20221216-135149","20221216-135427","20221216-135758"],
+        "20221216_140651_kFoldCrossValidation_EfficientNet_re": ["20221216-134945","20221216-135251","20221216-135649","20221216-140028","20221216-140400"],
         "20221216_142344_kFoldCrossValidation_EfficientNet_re_aug": ["20221216-140923","20221216-141213","20221216-141502","20221216-141803","20221216-142057"]
     }
     
