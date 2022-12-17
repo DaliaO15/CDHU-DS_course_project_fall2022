@@ -9,7 +9,14 @@ Comments: Christoph Nötzli 17/12-22
 
 def loadEventAccumulators(data_names, log_files_train, log_files_val, network="efficientnet"):
     """
+    Load data from log files
     
+    :param data_names: Name of result directory name
+    :param log_files_train: List of training log file paths
+    :param log_files_val: List of validation log file paths
+    :param network: Either "efficientnet" or "xception"
+    
+    :return reloaded data from log files
     """
     efficientnet_dict = efficientnetDict()
     xception_dict = xceptionDict()
@@ -51,6 +58,14 @@ def loadEventAccumulators(data_names, log_files_train, log_files_val, network="e
     return (event_acc_train, event_acc_val)
 
 def createDataList(event_acc_train, event_acc_val):
+    """
+    Create a dictionary that has the metric of all logs in the same list
+    
+    :param event_acc_train: Training logs
+    :param event_acc_val: Validation logs
+    
+    :return data_list with metrics of the logs in the same list
+    """
     data_list = {}
 
     for train in event_acc_train:
@@ -106,7 +121,9 @@ def createDataList(event_acc_train, event_acc_val):
     
 def efficientnetDict():
     """
+    Dict that links the result directories of the EfficientNet experiments to the corresponding log files
     
+    :return Dict with linked results and logs
     """
     return {
         "20221212_185715_EfficientNet_Museum": ["20221212-184604"],
@@ -130,7 +147,9 @@ def efficientnetDict():
     
 def xceptionDict():
     """
+    Dict that links the result directories of the Xception experiments to the corresponding log files
     
+    :return Dict with linked results and logs
     """
     return {
         "20221213_104527_Xception_Museum": ["20221213-103916"],
