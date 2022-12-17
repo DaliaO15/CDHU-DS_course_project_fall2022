@@ -3,7 +3,15 @@ import tensorflow as tf
 from fairness import fairnessMetrics as fm
 from model import utils as utils
 
+"""
+Contributions: Christoph Nötzli, Erik Norén and Sushruth Badri
+Comments: Erik Norén 14/12-22
+"""
+
 def metrics_list():
+    '''
+    :return list of evaluation metrics
+    '''
     return ["accuracy",
             tf.keras.metrics.TruePositives(), 
             tf.keras.metrics.TrueNegatives(),
@@ -34,6 +42,9 @@ def metrics_list():
 
     
 def metrics_dict():
+    '''
+    :return dictionary of evaluation metrics
+    '''
     return {
                 'TruePositiveRate': fm.TruePositiveRate(),
                 'TrueNegativeRate': fm.TrueNegativeRate(),
@@ -61,7 +72,18 @@ def metrics_dict():
     
 
 def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
+    '''
+    Build image classification model to be used in experiments. Either EfficientNet or Xception.
+    
+    :param augmentation: If True connect augmentation layers to model
+    :param image_size: Size of input image, should be selected according to model specification
+    :param network: If "Efficient" EfficientNet is selected as model, 
+                    If "Xception" Xception is selected as model
+    
+    :return keras model
+    '''
     if(augmentation):
+        # create augmentation layers
         augmentation_layers = tf.keras.Sequential([
             tf.keras.layers.RandomFlip('horizontal'),
             tf.keras.layers.RandomRotation(0.1),
@@ -73,17 +95,15 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
                 
         if(augmentation):
             x = augmentation_layers(inputs)
+            # Rescaling layer with appropriate preprocessing for Xception
             x = tf.keras.layers.Rescaling(scale=1.0/127.5, offset=-1)(x)
             base_model = tf.keras.applications.Xception(weights=None, input_tensor=x, include_top=False)
         else:
+            # Rescaling layer with appropriate preprocessing for Xception
             x = tf.keras.layers.Rescaling(scale=1.0/127.5, offset=-1)(inputs)
             base_model = tf.keras.applications.Xception(weights=None, input_tensor=inputs, include_top=False)
-       
-        #x = tf.keras.layers.Flatten()(base_model.output)
-        #x = tf.keras.layers.Dense(1024, activation='relu')(x)
-        #x = tf.keras.layers.Dropout(0.5)(x)
-        #x = tf.keras.layers.Dense(1, activation="sigmoid")(x)
         
+        # Apply top layers for binary classification
         x = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(base_model.output)
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Dropout(0.2)(x)
@@ -99,6 +119,8 @@ def build_model(augmentation=False, image_size=(224,224), network="Efficient"):
             base_model = tf.keras.applications.EfficientNetB3(include_top=False, input_tensor=x, drop_connect_rate=0.4)
         else: 
             base_model = tf.keras.applications.EfficientNetB3(include_top=False, input_tensor=inputs, drop_connect_rate=0.4)
+        
+        # Apply top layers for binary classification
         x = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(base_model.output)
         x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Dropout(0.2)(x)

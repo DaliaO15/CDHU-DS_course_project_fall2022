@@ -81,3 +81,22 @@ Use the following commands to install dlib with CUDA support:
 ```
 
 Note: Make sure to install Visula studio (For Windows), cmake and CUDA drivers before running the above
+
+The following command will run the face extraction module:
+```
+python3 basic_fd_cropping_CNN.py -sf input_folder -ef output_folder 
+```
+Example directory to run command in:
+```
+project    
+│
+└───input_folder
+│   │ image_with_faces_1.jpg
+│   │ image_with_faces_1.jpg
+│   │ ...
+│
+└───output_folder
+    │
+```
+The output_folder needs to exist before running the command.  
+

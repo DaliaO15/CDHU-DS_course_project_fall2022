@@ -1,5 +1,13 @@
 from tensorflow import keras
 from keras import backend
+"""
+Contribution: Christoph Nötzli
+Comments: Erik Norén 14/12-22
+
+The classes in this script contain fairness metrics that can be used to evaluate a keras model.
+This implementaion is a interpretation of the following r-package: 
+"""
+
 
 class TruePositiveRate(keras.metrics.Metric):
     def __init__(self, name='true_positive_rate', **kwargs):

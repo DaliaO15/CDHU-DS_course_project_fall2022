@@ -15,7 +15,23 @@ import datetime
 import glob
 import random
 
+"""
+Contribution: Christoph Nötzli
+Comments: Erik Norén 14/12-22
+"""
+
 def testModel(model, ds_test, test_batches, dir_name):
+    '''
+    Test a image classification model on a test set. Prints and saves results in given directory.
+    
+    :param model: trained model to be tested
+    :param ds_test: test data set
+    :param test_batches: test batches
+    :param dir_name: name of directory where test results should be saved
+    
+    :return Tuple with test predictions, test labels, and dir_name
+    '''
+    
     from matplotlib import pyplot as plt
     
     print("Testing Model")
@@ -101,6 +117,15 @@ def testModel(model, ds_test, test_batches, dir_name):
     return (test_predict, test_labels, dir_name)
     
 def findIdealThreshold(model, val_predict, val_labels):
+    '''
+    Bias mitigation method, post-processing. Find ideal thresholds.
+    
+    :param model: trained model 
+    :param val_predict: validation predictions
+    :param val_labels: validation labels
+    
+    :return Tuple with ...
+    '''    
     thresholds = np.arange(0.0, 1.0, 0.0001)
     true = np.zeros(shape=(len(thresholds)))
     false = np.zeros(shape=(len(thresholds)))
@@ -142,6 +167,18 @@ def findIdealThreshold(model, val_predict, val_labels):
     
 def testModelWithThresholdChange(model, ds_val, val_batches, test_predict, test_labels, dir_name):
     from matplotlib import pyplot as plt
+    '''
+    Bias mitigation method, post-processing. Test model with threshold change
+    
+    :param model: trained model 
+    :param ds_val: validation predictions
+    :param val_batches: validation labels
+    :param test_predict: test predictions
+    :param test_labels: test labels
+    :param dir_name: directory to save results
+    
+    :return N/A
+    '''  
     
     print("Validating Model")
     print("-------------")
@@ -211,6 +248,26 @@ def testModelWithThresholdChange(model, ds_val, val_batches, test_predict, test_
         
         
 def kfoldCrossValidation(path_female, path_male, model, metric_list, lr_schedule, image_size, class_weight, folds=5, epochs=20, learning_rate=5e-4, batch_size=128, shuffle_buffer=100):
+    '''
+    Performs k-fold crossvalidation 
+    
+    :param path_female: path to female training set 
+    :param path_male: path to male training set
+    :param model: untrained model
+    :param metric_list: list of evaluation metrics
+    :param lr_schedule: learning rate scheduler
+    :param image_size: size of input image, should be selected according to model specification
+    :param class_weight: weight per binary class
+    :param folds: # of folds
+    :param epochs: # of epochs
+    :param learning_rate: learning rate
+    :param batch_size: batch size
+    :param shuffle_buffer: ...
+    
+    
+    :return history log containing results of cross validation
+    '''      
+    
     print("Load data...")
     female = glob.glob(path_female)
     male = glob.glob(path_male)
@@ -283,6 +340,15 @@ def kfoldCrossValidation(path_female, path_male, model, metric_list, lr_schedule
         
     
 def evaluateCrossValidation(dir_name, history):
+    '''
+    Evaluate crossvalidation from the history log file, prints and saves results to directory
+
+    :param dir_name: directory where evaluation results should be saved
+    :param history: history log for results of crossvalidation
+    
+    :return Tuple with ...
+    ''' 
+    
     from matplotlib import pyplot as plt
     accuracy = [element["accuracy"][-1] for element in history]
     loss = [element["loss"][-1] for element in history]

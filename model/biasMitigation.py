@@ -1,6 +1,18 @@
 import numpy as np
 
+"""
+Contributions: Sushruth Badri
+Comments: Erik Norén 14/12-22
+"""
+
 def findClassWeights(ds_train):
+    '''
+    Find weights depending on binary class distribution in training data.
+    
+    :param ds_train: training data set
+    
+    :return dictionary of weight per binary class
+    '''
     total=len(ds_train.labels)
     
     weight_for_0 = (1 / (total - np.count_nonzero(ds_train.labels))) * (total / 2.0)
