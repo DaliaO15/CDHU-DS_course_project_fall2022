@@ -2,6 +2,11 @@ import splitfolders
 from tensorflow import keras
 import shutil
 import os
+import tensorflow as tf
+"""
+Contribution: Christoph Nötzli
+Comments: Christoph Nötzli 17/12-22
+"""
 
 
 def createFolders(folderName, train_split, val_split, test_split, delete, seed):
@@ -26,9 +31,7 @@ def createFolders(folderName, train_split, val_split, test_split, delete, seed):
     splitfolders.ratio(folderName, output=output_path, seed=seed, ratio=(train_split, val_split, test_split), group_prefix=None, move=False)
     return output_path
 
-'''
-Count number of files in 
-'''
+
 def countNumberOfFilesInDirectory(dir_path):
     '''
     Count number of files in directory "dir_path"
@@ -82,9 +85,10 @@ def readData(folderName, image_size, batch_size, preprocess_input, seed=None, sp
     else:
         ds_path = folderName
 
-    train_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
-    valid_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
-    test_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
+    # preprocessing set to None since preprocessing layer has been added to Xception model directly.
+    train_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=None) 
+    valid_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=None)
+    test_gen = keras.preprocessing.image.ImageDataGenerator(preprocessing_function=None)
     
     train_path = ds_path + '/train'
     val_path = ds_path + '/val'
@@ -122,4 +126,28 @@ def readData(folderName, image_size, batch_size, preprocess_input, seed=None, sp
     count_classes = getCountOfClasses(train_path, val_path, test_path)
     print("Count classes: " + str(count_classes))
     
-    return (train_batches, val_batches, test_batches, count_classes)
+    ds_train = tf.data.Dataset.from_generator(
+        lambda: train_batches,
+        output_types=(tf.float32, tf.float32), 
+        output_shapes=([None, image_size[0], image_size[1], 3], [None, ])
+    )
+    
+    ds_val = tf.data.Dataset.from_generator(
+        lambda: val_batches,
+        output_types=(tf.float32, tf.float32), 
+        output_shapes=([None, image_size[0], image_size[1], 3], [None, ])
+    )
+    
+    ds_test = tf.data.Dataset.from_generator(
+        lambda: test_batches,
+        output_types=(tf.float32, tf.float32), 
+        output_shapes=([None, image_size[0], image_size[1], 3], [None, ])
+    )
+    
+    options = tf.data.Options()
+    options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
+    ds_train = ds_train.with_options(options)
+    ds_val = ds_val.with_options(options)
+    ds_test = ds_test.with_options(options)
+    
+    return (ds_train, train_batches, ds_val, val_batches, ds_test, test_batches, count_classes)
