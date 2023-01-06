@@ -83,6 +83,10 @@ def createDataList(event_acc_train, event_acc_val):
                     tag = "epoch_true_negatives"
                 if "epoch_false_negatives" in tag:
                     tag = "epoch_false_negatives"
+                    
+                # Change name to equal opportunity because of wrong tag name
+                if "epoch_binary_equalized_odds_diff" in tag:
+                    tag = "epoch_binary_equal_opportunity_diff"
 
                 tag = tag.replace("epoch_", "")
 
@@ -107,6 +111,10 @@ def createDataList(event_acc_train, event_acc_val):
                     tag = "evaluation_true_negatives_vs_iterations"
                 if "evaluation_false_negatives" in tag:
                     tag = "evaluation_false_negatives_vs_iterations"
+                    
+                # Change name to equal opportunity because of wrong tag name
+                if "evaluation_binary_equalized_odds_diff" in tag:
+                    tag = "evaluation_binary_equal_opportunity_diff_vs_iterations"
 
                 tag = tag.replace("evaluation_", "")
                 tag = tag.replace("_vs_iterations", "")

@@ -224,8 +224,10 @@ class DemographicParity(keras.metrics.Metric):
         self.fp.reset_state()
         self.dp = 0.0
    
-
+        
+    
 class BinaryEqualizedOddsDiff(keras.metrics.Metric):
+    # Should be equal opportunity instead of equalized odds
     def __init__(self, name='binary_equalized_odds_diff', **kwargs):
         super(BinaryEqualizedOddsDiff, self).__init__(name=name, **kwargs)
         self.tpr1 = TruePositiveRate()
@@ -347,8 +349,8 @@ class PredictiveRateParity(keras.metrics.Metric):
         self.fp.reset_state()
         self.prp = 0.0
         
-        
 class BinaryAccuracyParityDiff(keras.metrics.Metric):
+    # Bug in implementation: Results are not correct!
     def __init__(self, name='binary_accuracy_parity_diff', **kwargs):
         super(BinaryAccuracyParityDiff, self).__init__(name=name, **kwargs)
         self.tp = keras.metrics.TruePositives()
